@@ -8,6 +8,7 @@ wheels/
 *.xml
 *.dtd
 *.jsonl
+*.pth
 
 # Virtual environments
 .venv
