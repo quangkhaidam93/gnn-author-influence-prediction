@@ -1,0 +1,16 @@
+[project]
+name = "gnn-author-influence-prediction"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "kagglehub[pandas-datasets]>=0.3.11",
+    "lxml>=5.3.1",
+    "numpy>=2.2.4",
+    "pandas>=2.2.3",
+    "scikit-learn>=1.6.1",
+    "torch>=2.6.0",
+    "torch-geometric>=2.6.1",
+    "transformers>=4.50.3",
+]
