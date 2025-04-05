@@ -1,8 +1,5 @@
-from datetime import datetime
-
-# from config import Config
 import torch
-
+from torch.amp import autocast, GradScaler
 from torch_geometric.nn import GATConv
 import torch.nn.functional as F
 from sklearn.metrics import (
@@ -12,18 +9,16 @@ from sklearn.metrics import (
     f1_score,
     roc_auc_score,
 )
-from services import load_and_preprocess_data
+from data import load_data
 
-CURRENT_YEAR = datetime.now().year  # Or set a specific year T for training
-PREDICTION_WINDOW = 3  # Predict increase over W years
 INFLUENCE_THRESHOLD = (
     10  # Absolute increase in citations to be considered 'influential'
 )
-HIDDEN_CHANNELS = 64  # GNN hidden layer size
-NUM_HEADS = 4  # Number of attention heads in GAT
+HIDDEN_CHANNELS = 30  # GNN hidden layer size
+NUM_HEADS = 2  # Number of attention heads in GAT
 LEARNING_RATE = 0.005
 WEIGHT_DECAY = 5e-4
-EPOCHS = 200
+EPOCHS = 100000
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
@@ -62,6 +57,23 @@ def train(model, data, optimizer, criterion):
     return loss.item()
 
 
+def train_light(model, data, optimizer, criterion):
+    model.train()
+    optimizer.zero_grad()
+    scaler = GradScaler()
+
+    with autocast(device_type=DEVICE.type):
+        out = model(data.x, data.edge_index)
+        # Only calculate loss on training nodes
+        loss = criterion(out[data.train_mask], data.y[data.train_mask])
+
+    scaler.scale(loss).backward()
+    scaler.step(optimizer)
+    scaler.update()
+
+    return loss.item()
+
+
 # --- 4. Evaluation Function ---
 @torch.no_grad()  # Disable gradient calculations for evaluation
 def evaluate(model, data, mask):
@@ -87,9 +99,7 @@ def evaluate(model, data, mask):
 if __name__ == "__main__":
     # --- Load Data ---
     # Replace 'path/to/your/processed/data' if needed by your loader
-    data = load_and_preprocess_data(
-        "data/", CURRENT_YEAR, PREDICTION_WINDOW, INFLUENCE_THRESHOLD
-    )
+    data = load_data("data/authors.jsonl", INFLUENCE_THRESHOLD)
     data = data.to(DEVICE)
 
     # --- Initialize Model ---
