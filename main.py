@@ -1,6 +1,7 @@
 import torch
 from torch.amp import autocast, GradScaler
 from torch_geometric.nn import GATConv
+from torch.nn import BatchNorm1d
 import torch.nn.functional as F
 from sklearn.metrics import (
     accuracy_score,
@@ -29,6 +30,10 @@ class AuthorGAT(torch.nn.Module):
         # Increase hidden_channels fed into the second GAT layer because concatenation
         # multiplies the channel dimension by the number of heads.
         self.conv1 = GATConv(in_channels, hidden_channels, heads=heads, dropout=0.6)
+
+        # Optional: BatchNorm can stabilize training
+        self.bn1 = BatchNorm1d(hidden_channels * heads)
+
         # Use heads=1 or average the heads for the final layer output
         self.conv2 = GATConv(
             hidden_channels * heads, out_channels, heads=1, concat=False, dropout=0.6
@@ -36,8 +41,9 @@ class AuthorGAT(torch.nn.Module):
 
     def forward(self, x, edge_index):
         x = F.dropout(x, p=0.6, training=self.training)
-        # Activation after first layer
-        x = F.elu(self.conv1(x, edge_index))
+        x = self.conv1(x, edge_index)
+        x = self.bn1(x)
+        x = F.elu(x)
         x = F.dropout(x, p=0.6, training=self.training)
         # No activation before final output for classification loss
         x = self.conv2(x, edge_index)
