@@ -127,6 +127,6 @@ def inference_pipeline():
 
 
 if __name__ == "__main__":
-    train_pipeline()
-    # evaluate_pipeline()
+    # train_pipeline()
+    evaluate_pipeline()
     # inference_pipeline()
