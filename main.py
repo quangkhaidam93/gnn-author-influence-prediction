@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 from data import load_data
-from services import AuthorGAT, train, evaluate
+from services import AuthorGAT, train, evaluate, comparison
 from config import Config
 
 INFLUENCE_THRESHOLD = Config.INFLUENCE_THRESHOLD
@@ -128,5 +128,6 @@ def inference_pipeline():
 
 if __name__ == "__main__":
     # train_pipeline()
-    evaluate_pipeline()
+    # evaluate_pipeline()
     # inference_pipeline()
+    comparison()
