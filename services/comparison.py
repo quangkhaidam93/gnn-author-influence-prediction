@@ -1,4 +1,4 @@
-from evaluate import evaluate
+from .evaluate import evaluate
 import networkx as nx
 import numpy as np
 from tqdm import tqdm
@@ -104,45 +104,45 @@ def comparison(data, model):
         print("Skipping CN calculation due to no edges.")
 
     # --- 5. Generate Node2Vec Embeddings ---
-    print("Generating Node2Vec embeddings...")
-    N2V_DIMENSIONS = 64  # Example dimension
-    n2v_embeddings = np.zeros(
-        (data_cpu.num_nodes, N2V_DIMENSIONS)
-    )  # Default placeholder
-    if nx_graph.number_of_edges() > 0:
-        try:
-            N2V_WALK_LENGTH = 20
-            N2V_NUM_WALKS = 10
-            N2V_WORKERS = 4
-            N2V_P = 1
-            N2V_Q = 1
-            node2vec_model = Node2Vec(
-                nx_graph,
-                dimensions=N2V_DIMENSIONS,
-                walk_length=N2V_WALK_LENGTH,
-                num_walks=N2V_NUM_WALKS,
-                workers=N2V_WORKERS,
-                p=N2V_P,
-                q=N2V_Q,
-                quiet=True,
-            )
-            n2v_trained_model = node2vec_model.fit(window=5, min_count=1, batch_words=4)
-            # Ensure embeddings are fetched correctly, handling nodes not in vocab
-            n2v_embeddings = np.array(
-                [
-                    (
-                        n2v_trained_model.wv[node_id]
-                        if node_id in n2v_trained_model.wv
-                        else np.zeros(N2V_DIMENSIONS)
-                    )
-                    for node_id in range(data_cpu.num_nodes)
-                ]
-            )
-            print("Node2Vec embedding generation complete.")
-        except Exception as e:
-            print(f"Error during Node2Vec execution: {e}. Using zero embeddings.")
-    else:
-        print("Skipping Node2Vec due to no edges. Using zero embeddings.")
+    # print("Generating Node2Vec embeddings...")
+    # N2V_DIMENSIONS = 64  # Example dimension
+    # n2v_embeddings = np.zeros(
+    #     (data_cpu.num_nodes, N2V_DIMENSIONS)
+    # )  # Default placeholder
+    # if nx_graph.number_of_edges() > 0:
+    #     try:
+    #         N2V_WALK_LENGTH = 20
+    #         N2V_NUM_WALKS = 10
+    #         N2V_WORKERS = 4
+    #         N2V_P = 1
+    #         N2V_Q = 1
+    #         node2vec_model = Node2Vec(
+    #             nx_graph,
+    #             dimensions=N2V_DIMENSIONS,
+    #             walk_length=N2V_WALK_LENGTH,
+    #             num_walks=N2V_NUM_WALKS,
+    #             workers=N2V_WORKERS,
+    #             p=N2V_P,
+    #             q=N2V_Q,
+    #             quiet=True,
+    #         )
+    #         n2v_trained_model = node2vec_model.fit(window=5, min_count=1, batch_words=4)
+    #         # Ensure embeddings are fetched correctly, handling nodes not in vocab
+    #         n2v_embeddings = np.array(
+    #             [
+    #                 (
+    #                     n2v_trained_model.wv[node_id]
+    #                     if node_id in n2v_trained_model.wv
+    #                     else np.zeros(N2V_DIMENSIONS)
+    #                 )
+    #                 for node_id in range(data_cpu.num_nodes)
+    #             ]
+    #         )
+    #         print("Node2Vec embedding generation complete.")
+    #     except Exception as e:
+    #         print(f"Error during Node2Vec execution: {e}. Using zero embeddings.")
+    # else:
+    #     print("Skipping Node2Vec due to no edges. Using zero embeddings.")
 
     # --- 6. Prepare Feature Sets & Train Baseline Classifiers ---
     print("Preparing feature sets and training baseline classifiers...")
@@ -157,15 +157,15 @@ def comparison(data, model):
     X_handcrafted = X_all
     X_hc_pr = np.concatenate([X_handcrafted, pr_feature[:, None]], axis=1)
     X_hc_cn = np.concatenate([X_handcrafted, cn_feature[:, None]], axis=1)
-    X_n2v = n2v_embeddings
-    X_n2v_hc = np.concatenate([X_n2v, X_handcrafted], axis=1)
+    # X_n2v = n2v_embeddings
+    # X_n2v_hc = np.concatenate([X_n2v, X_handcrafted], axis=1)
 
     feature_sets = {
         "Handcrafted": X_handcrafted,
         "HC+PR": X_hc_pr,
         "HC+CN": X_hc_cn,
-        "Node2Vec": X_n2v,
-        "N2V+HC": X_n2v_hc,
+        # "Node2Vec": X_n2v,
+        # "N2V+HC": X_n2v_hc,
     }
     baseline_models = {}
 
@@ -266,6 +266,8 @@ def comparison(data, model):
         results_df = pd.DataFrame(results).T.sort_values(by="AUC", ascending=False)
         pd.options.display.float_format = "{:.4f}".format
         print(results_df)
+        print("\n")
+        print("\n")
     else:
         print("No evaluation results were generated.")
     print("---------------------------------")

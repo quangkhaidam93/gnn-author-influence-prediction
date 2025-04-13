@@ -126,8 +126,24 @@ def inference_pipeline():
         print("\nNo authors in the simulated test set to run inference on.")
 
 
+def comparison_pipeline():
+    data = load_data(processed_authors_data, INFLUENCE_THRESHOLD)
+    data = data.to(DEVICE)
+
+    model = AuthorGAT(
+        in_channels=data.num_node_features,
+        hidden_channels=HIDDEN_CHANNELS,
+        out_channels=data.num_classes,
+        heads=NUM_HEADS,
+    ).to(DEVICE)
+
+    model.load_state_dict(torch.load("best_gat_model.pth"))
+
+    comparison(data, model)
+
+
 if __name__ == "__main__":
     # train_pipeline()
     # evaluate_pipeline()
     # inference_pipeline()
-    comparison()
+    comparison_pipeline()
